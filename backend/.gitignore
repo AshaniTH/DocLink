@@ -1,0 +1,81 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables (MongoDB URI, Cloudinary keys, etc.)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build output
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Optional: coverage reports
+coverage/
+
+# MongoDB local data files (if any)
+data/
+*.bson
+*.dump
+
+# Uploaded files (doctor profiles, documents)
+uploads/
+uploads/*
+!uploads/.gitkeep
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Test files
+test-*.txt
+test-*.json
+test-api.ps1
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Database dumps
+*.sql
+*.sqlite
+*.db
+
+# Security files
+*.pem
+*.key
+*.cert
+*.crt
+
+# Package manager files
+.npm
+.yarn-integrity
+yarn.lock
+
+# Runtime configuration
+.config/
