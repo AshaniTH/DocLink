@@ -7,13 +7,13 @@ export const AppContext = createContext()
 
 const AppContextProvider = (props) =>{
 const currencySymbol = "LKR"
-const backendUrl = import.meta.env.VITE_BACKEND_URL
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
 const [doctors,setDoctors] = useState([])
 
-    const value ={
-        doctors,
-        currencySymbol
-    }
+const [token,setToken] = useState(localStorage.getItem('token')?localStorage.getItem('token'):false)
+
+
+
 
     const getDoctorsData = async () => {
         try{
@@ -30,6 +30,13 @@ const [doctors,setDoctors] = useState([])
             toast.error(error.message)
 
         }
+    }
+    
+    const value ={
+        doctors,
+        currencySymbol,
+        token,setToken,
+        backendUrl
     }
 
     useEffect(()=>{
