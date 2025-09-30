@@ -22,9 +22,6 @@ const {backendUrl,aToken} = useContext(AdminContext)
 
   const onSubmitHandler = async (event) =>{
     event.preventDefault()
-    
-    console.log('Backend URL:', backendUrl); // Debug: Check if backendUrl is set
-    console.log('Token:', aToken); // Debug: Check if token exists
 
     try{
       if(!docImg){
@@ -44,15 +41,12 @@ const {backendUrl,aToken} = useContext(AdminContext)
       
 
       //console log form data
-      for (let [key, value] of formData.entries()) {
+      formData.forEach((value,key)=>{
         console.log(`${key}: ${value}`);
-      }
 
-      const {data} = await axios.post(backendUrl + '/api/admin/add-doctor', formData, {
-        headers: {
-          'Authorization': `Bearer ${aToken}`
-        }
       })
+
+      const {data} = await axios.post (backendUrl + '/api/admin/add-doctor',formData,{headers:{aToken}})
       if (data.success){
         toast.success(data.message)
         setDocImg(false)
