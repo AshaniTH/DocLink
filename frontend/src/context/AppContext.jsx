@@ -63,13 +63,14 @@ const [userData,setUserData] = useState(false)
         getDoctorsData()
     },[])
 
-    useEffect(()=>{
-        if(token){
-            loadUserProfileData()
-        }else{
-            setUserData(false)
-        }
-    })
+    useEffect(() => {
+    if (token) {
+        loadUserProfileData()
+    } else {
+        setUserData(false)
+    }
+}, [token])   // <-- dependency array
+
 
 
 
