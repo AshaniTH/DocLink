@@ -141,4 +141,35 @@ const appointmentComplete = async (req,res) => {
     }
 }
 
-export {addDoctor,loginAdmin,allDoctors,appointmentsAdmin,appointmentCancel,appointmentComplete}
+// API to get dashboard statistics
+const adminDashboard = async (req, res) => {
+    try {
+        const doctors = await doctorModel.find({})
+        const appointments = await appointmentModel.find({})
+        
+        // Get latest appointments (already have userData and docData embedded)
+        const latestAppointments = await appointmentModel.find({})
+            .sort({ date: -1 })
+            .limit(5)
+        
+        // Calculate total revenue from completed appointments
+        const completedAppointments = appointments.filter(appointment => appointment.isCompleted && !appointment.cancelled)
+        const totalRevenue = completedAppointments.reduce((total, appointment) => total + (appointment.amount || 0), 0)
+        
+        const dashData = {
+            doctors: doctors.length,
+            appointments: appointments.length,
+            patients: new Set(appointments.map(appointment => appointment.userId)).size,
+            latestAppointments: latestAppointments,
+            revenue: totalRevenue
+        }
+        
+        res.json({success: true, dashData})
+        
+    } catch (error) {
+        console.log(error)
+        res.json({success: false, message: error.message})
+    }
+}
+
+export {addDoctor,loginAdmin,allDoctors,appointmentsAdmin,appointmentCancel,appointmentComplete,adminDashboard}
