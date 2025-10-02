@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt'
 import { v2 as cloudinary} from 'cloudinary'
 import doctorModel from '../models/doctorModel.js'
 import jwt from 'jsonwebtoken'
+import appointmentModel from '../models/appointmentModel.js'
 
 
 
@@ -97,5 +98,47 @@ const allDoctors = async (req,res)=>{
     }
 
 }
+//API to get all appointments list
+const appointmentsAdmin = async (req,res) =>{
+    try{
+        const appointments = await appointmentModel.find({})
+        res.json({success:true,appointments})
+    }catch(error){
+        console.log(error)
+        res.json({success:false,message:error.message})
+    }
+}
 
-export {addDoctor,loginAdmin,allDoctors}
+// API to cancel appointment for admin
+const appointmentCancel = async (req,res) => {
+    try{
+        const {appointmentId} = req.body
+        const appointmentData = await appointmentModel.findById(appointmentId)
+        
+        await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled:true})
+        
+        res.json({success:true,message:'Appointment Cancelled'})
+        
+    }catch(error){
+        console.log(error)
+        res.json({success:false,message:error.message})
+    }
+}
+
+// API to mark appointment complete for admin
+const appointmentComplete = async (req,res) => {
+    try{
+        const {appointmentId} = req.body
+        const appointmentData = await appointmentModel.findById(appointmentId)
+        
+        await appointmentModel.findByIdAndUpdate(appointmentId, {isCompleted:true})
+        
+        res.json({success:true,message:'Appointment Completed'})
+        
+    }catch(error){
+        console.log(error)
+        res.json({success:false,message:error.message})
+    }
+}
+
+export {addDoctor,loginAdmin,allDoctors,appointmentsAdmin,appointmentCancel,appointmentComplete}
