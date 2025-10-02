@@ -13,12 +13,37 @@ const Dashboard = () => {
   }, [aToken])
 
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric'
+    try {
+      // Handle the specific format used in the app: day_month_year
+      if (typeof dateString === 'string' && dateString.includes('_')) {
+        const dateArray = dateString.split('_');
+        if (dateArray.length === 3) {
+          const day = dateArray[0];
+          const month = dateArray[1];
+          const year = dateArray[2];
+          
+          const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          
+          return `${day} ${months[Number(month)]} ${year}`;
+        }
+      }
+      
+      // Fallback for other date formats
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original string if can't parse
+      }
+      
+      const options = { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric'
+      }
+      return date.toLocaleDateString('en-US', options);
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return dateString; // Return original string if error
     }
-    return new Date(dateString).toLocaleDateString('en-US', options)
   }
 
   const getStatusColor = (appointment) => {
