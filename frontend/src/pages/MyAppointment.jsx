@@ -50,6 +50,45 @@ const cancelAppointment = async(appointmentId) =>{
   }
 }
 
+
+const initializePayment = async (appointmentId) => {
+  try {
+    const { data } = await axios.post(backendUrl + '/api/user/initialize-payment', { appointmentId }, { headers: { token } })
+    
+    if (data.success) {
+      // Initialize PayHere payment
+      const payment = {
+        ...data.paymentData,
+        onCompleted: function(orderId) {
+          console.log("Payment completed. OrderID:" + orderId);
+          toast.success('Payment completed successfully!')
+          getuserAppointments() // Refresh appointments
+        },
+        onDismissed: function() {
+          console.log("Payment dismissed");
+          toast.info('Payment was dismissed')
+        },
+        onError: function(error) {
+          console.log("Error:" + error);
+          toast.error('Payment failed: ' + error)
+        }
+      }
+
+      // Check if PayHere is loaded
+      if (window.payhere) {
+        window.payhere.startPayment(payment)
+      } else {
+        toast.error('PayHere payment gateway not loaded')
+      }
+    } else {
+      toast.error(data.message)
+    }
+  } catch (error) {
+    console.log(error)
+    toast.error(error.message)
+  }
+}
+
 useEffect(()=>{
   if(token){
     getuserAppointments()
@@ -77,9 +116,32 @@ useEffect(()=>{
       <div></div>
 
       <div className='flex flex-col gap-2 justify-center'>
-        {!item.cancelled && <button className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'> Pay Online </button>}
-        {!item.cancelled && <button onClick={() => cancelAppointment(item._id)} className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-500 hover:text-white transition-all duration-300'>Cancel Appointment</button>}
-        {item.cancelled && <button className='sm:min-w-48 py-2 border border-red-500 rounded text-red-500'>Appointment Cancelled</button>}
+        {!item.cancelled && !item.payment && (
+          <button 
+            onClick={() => initializePayment(item._id)} 
+            className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'
+          > 
+            Pay Online 
+          </button>
+        )}
+        {!item.cancelled && item.payment && (
+          <button className='sm:min-w-48 py-2 border border-green-500 rounded text-green-500'>
+            Paid
+          </button>
+        )}
+        {!item.cancelled && !item.payment && (
+          <button 
+            onClick={() => cancelAppointment(item._id)} 
+            className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-500 hover:text-white transition-all duration-300'
+          >
+            Cancel Appointment
+          </button>
+        )}
+        {item.cancelled && (
+          <button className='sm:min-w-48 py-2 border border-red-500 rounded text-red-500'>
+            Appointment Cancelled
+          </button>
+        )}
       </div>
 
     </div>

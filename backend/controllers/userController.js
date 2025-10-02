@@ -5,6 +5,7 @@ import userModel from '../models/userModel.js'
 import doctorModel from '../models/doctorModel.js'
 import appointmentModel from '../models/appointmentModel.js'
 import { v2 as cloudinary} from 'cloudinary'
+import { payhereConfig, generateHash } from '../config/payhereConfig.js'
 //API to rejister user
 
 const registerUser = async (req,res) =>{
@@ -218,4 +219,125 @@ const cancelAppointment = async (req,res) =>{
     }
 }
 
-export {registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment}
+// API to initialize PayHere payment
+const initializePayment = async (req, res) => {
+    try {
+        const { appointmentId } = req.body
+        const { userId } = req.body
+
+        // Get appointment details
+        const appointment = await appointmentModel.findById(appointmentId)
+        if (!appointment) {
+            return res.json({ success: false, message: "Appointment not found" })
+        }
+
+        // Verify appointment belongs to user
+        if (appointment.userId !== userId) {
+            return res.json({ success: false, message: "Unauthorized access" })
+        }
+
+        // Check if already paid
+        if (appointment.payment) {
+            return res.json({ success: false, message: "Payment already completed" })
+        }
+
+        // Generate unique order ID
+        const orderId = `ORDER_${appointmentId}_${Date.now()}`
+        
+        // Generate PayHere hash
+        const hash = generateHash(orderId, appointment.amount, 'LKR')
+
+        // PayHere payment data
+        const paymentData = {
+            merchant_id: payhereConfig.merchant_id,
+            return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/my-appointments`,
+            cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/my-appointments`,
+            notify_url: `${process.env.BACKEND_URL || 'http://localhost:4000'}/api/user/payment-notify`,
+            order_id: orderId,
+            items: `Consultation with ${appointment.docData.name}`,
+            amount: appointment.amount,
+            currency: 'LKR',
+            hash: hash,
+            first_name: appointment.userData.name.split(' ')[0],
+            last_name: appointment.userData.name.split(' ')[1] || '',
+            email: appointment.userData.email,
+            phone: appointment.userData.phone || '',
+            address: appointment.userData.address?.line1 || '',
+            city: 'Colombo',
+            country: 'Sri Lanka',
+            sandbox: payhereConfig.sandbox
+        }
+
+        // Update appointment with order ID for tracking
+        await appointmentModel.findByIdAndUpdate(appointmentId, { 
+            orderId: orderId,
+            paymentInitiated: true 
+        })
+
+        res.json({ 
+            success: true, 
+            paymentData,
+            checkoutUrl: payhereConfig.checkoutUrl
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+// API to verify PayHere payment
+const verifyPayment = async (req, res) => {
+    try {
+        const paymentData = req.body
+        console.log('Payment notification received:', paymentData)
+
+        // Import verifyPayment function from config
+        const { verifyPayment: verifyPaymentHash } = await import('../config/payhereConfig.js')
+        
+        // Verify payment authenticity
+        if (!verifyPaymentHash(paymentData)) {
+            console.log('Payment verification failed')
+            return res.status(400).send('Invalid payment data')
+        }
+
+        const { order_id, status_code, payhere_amount } = paymentData
+
+        // Find appointment by order ID
+        const appointment = await appointmentModel.findOne({ orderId: order_id })
+        if (!appointment) {
+            console.log('Appointment not found for order:', order_id)
+            return res.status(404).send('Appointment not found')
+        }
+
+        // Update appointment based on payment status
+        if (status_code == 2) { // Success
+            await appointmentModel.findByIdAndUpdate(appointment._id, {
+                payment: true,
+                paymentStatus: 'completed',
+                paymentAmount: payhere_amount,
+                paymentDate: new Date()
+            })
+            console.log('Payment completed for appointment:', appointment._id)
+        } else if (status_code == -1) { // Cancelled
+            await appointmentModel.findByIdAndUpdate(appointment._id, {
+                paymentStatus: 'cancelled'
+            })
+            console.log('Payment cancelled for appointment:', appointment._id)
+        } else if (status_code == -2) { // Failed
+            await appointmentModel.findByIdAndUpdate(appointment._id, {
+                paymentStatus: 'failed'
+            })
+            console.log('Payment failed for appointment:', appointment._id)
+        }
+
+        res.status(200).send('OK')
+
+    } catch (error) {
+        console.log('Payment verification error:', error)
+        res.status(500).send('Payment verification failed')
+    }
+}
+
+
+export {registerUser,loginUser,getProfile,updateProfile,bookAppointment,listAppointment,cancelAppointment,initializePayment, verifyPayment}
