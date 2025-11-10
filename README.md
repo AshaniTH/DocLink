@@ -45,15 +45,20 @@ DocLink/
 ## Screenshots
 
 Add screenshots to `docs/screenshots/` and then update or keep the placeholders below.
+- Frontend (Home)
+  ![Frontend Home](docs/screenshots/header.png)
+
+- Frontend (Booking)
+  ![Frontend Booking](docs/screenshots/home.png)
 
 - Admin (Login)
-  ![Admin Login](docs/screenshots/admin-login.png)
+  ![Admin Login](docs/screenshots/adminLogin.png)
 
 - Admin (Dashboard)
-  ![Admin Dashboard](docs/screenshots/admin-dashboard.png)
+  ![Admin Dashboard](docs/screenshots/admindashboard.png)
 
 - Doctor (Login)
-  ![Doctor Login](docs/screenshots/doctor-login.png)
+  ![Doctor Login](docs/screenshots/doctorlogin.png)
 
 - Doctor (Dashboard)
   ![Doctor Dashboard](docs/screenshots/doctor-dashboard.png)
@@ -64,11 +69,6 @@ Add screenshots to `docs/screenshots/` and then update or keep the placeholders 
 - Doctor (Profile)
   ![Doctor Profile](docs/screenshots/doctor-profile.png)
 
-- Frontend (Home)
-  ![Frontend Home](docs/screenshots/frontend-home.png)
-
-- Frontend (Booking)
-  ![Frontend Booking](docs/screenshots/frontend-booking.png)
 
 
 ## Quick start (Windows / PowerShell)
