@@ -9,12 +9,15 @@ import {
     doctorProfile, 
     updateDoctorProfile 
 } from '../controllers/doctorController.js'
+import { forgotPasswordDoctor, resetPasswordDoctor } from '../controllers/doctorController.js'
 import authDoctor from '../middlewares/authDoctor.js'
 
 const doctorRouter = express.Router()
 
 doctorRouter.get('/list', doctorList)
 doctorRouter.post('/login', loginDoctor)
+doctorRouter.post('/forgot-password', forgotPasswordDoctor)
+doctorRouter.post('/reset-password', resetPasswordDoctor)
 doctorRouter.get('/appointments', authDoctor, appointmentsDoctor)
 doctorRouter.post('/complete-appointment', authDoctor, appointmentComplete)
 doctorRouter.post('/cancel-appointment', authDoctor, appointmentCancel)
