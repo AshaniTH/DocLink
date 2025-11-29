@@ -2,6 +2,8 @@ import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from 'crypto'
+import sendMail from '../config/mail.js'
 
 const changeAvailability = async (req,res) => {
     try{
@@ -173,6 +175,56 @@ const updateDoctorProfile = async (req, res) => {
     }
 }
 
+// Doctor - initiate forgot password
+const forgotPasswordDoctor = async (req, res) => {
+    try {
+        const { email } = req.body
+        const doctor = await doctorModel.findOne({ email })
+        if (!doctor) return res.json({ success: false, message: 'No doctor found with that email' })
+
+        const token = crypto.randomBytes(20).toString('hex')
+        doctor.resetPasswordToken = token
+        doctor.resetPasswordExpires = Date.now() + 3600000 // 1 hour
+        await doctor.save()
+
+        const client = process.env.CLIENT_URL || 'http://localhost:5174'
+        const resetUrl = `${client}/reset-password/${token}?type=doctor`
+
+        const text = `You requested a password reset. Click/visit the link to reset your password: ${resetUrl}`
+        const html = `<p>You requested a password reset.</p><p>Click the link below to reset your password (expires in 1 hour):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`
+
+        await sendMail({ to: doctor.email, subject: 'Doctor Password Reset', text, html })
+
+        res.json({ success: true, message: 'Password reset email sent' })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+// Doctor - complete reset with token
+const resetPasswordDoctor = async (req, res) => {
+    try {
+        const { token, password } = req.body
+        const doctor = await doctorModel.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } })
+        if (!doctor) return res.json({ success: false, message: 'Invalid or expired token' })
+
+        const salt = await bcrypt.genSalt(10)
+        const hashed = await bcrypt.hash(password, salt)
+        doctor.password = hashed
+        doctor.resetPasswordToken = undefined
+        doctor.resetPasswordExpires = undefined
+        await doctor.save()
+
+        res.json({ success: true, message: 'Password updated successfully' })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
 export {
     changeAvailability,
     doctorList,
@@ -182,5 +234,7 @@ export {
     appointmentComplete,
     doctorDashboard,
     doctorProfile,
-    updateDoctorProfile
+    updateDoctorProfile,
+    forgotPasswordDoctor,
+    resetPasswordDoctor
 }
