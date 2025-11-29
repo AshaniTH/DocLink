@@ -62,6 +62,7 @@ const Login = () => {
                 </div>
 
                 <button className='bg-primary text-white w-full py-2 rounded-md text-base'>Login</button>
+                <p className='text-sm text-right w-full'><span className='text-primary underline cursor-pointer' onClick={()=> navigate(`/forgot-password?type=${state}`)}>Forgot password?</span></p>
                 {
                     state === 'Admin'
                         ? <p>Doctor Login <span className='text-primary underline cursor-pointer' onClick={() => setState('Doctor')}>Click here</span></p>
