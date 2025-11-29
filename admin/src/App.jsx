@@ -1,5 +1,7 @@
 import React, { useContext } from 'react'
 import Login from './pages/Login'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import { ToastContainer, toast } from 'react-toastify';
 import { AdminContext } from './context/AdminContext';
 import { DoctorContext } from './context/DoctorContext';
@@ -51,7 +53,11 @@ const App = () => {
     </div>
   ) : (
     <>
-      <Login />
+      <Routes>
+        <Route path='/' element={<Login />} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
+        <Route path='/reset-password/:token' element={<ResetPassword />} />
+      </Routes>
       <ToastContainer />
     </>
   )
